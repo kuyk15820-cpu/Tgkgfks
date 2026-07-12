@@ -2,13 +2,13 @@
 #import <ffmpegkit/FFmpegKit.h>
 #import <PhotosUI/PhotosUI.h>
 #import <MobileCoreServices/MobileCoreServices.h>
+#import "SVProgressHUD.h"
 
 @interface RootViewController () <UITableViewDelegate, UITableViewDataSource, PHPickerViewControllerDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) NSArray *menuItems;
 @property (nonatomic, assign) float currentScale;
-@property (nonatomic, strong) UIActivityIndicatorView *spinner;
 
 @end
 
@@ -27,6 +27,7 @@
 }
 
 - (void)viewDidLoad {
+    [super Xcode_setup];
     [super viewDidLoad];
     
     // ตั้งค่าพื้นหลังรวมเป็นสีดำสนิทสนมกับ Dark Mode 
@@ -40,9 +41,11 @@
         self.title = @"TT-Tool";
     }
 
+    [SVProgressHUD setDefaultStyle:SVProgressHUDStyleDark];
+    [SVProgressHUD setDefaultMaskType:SVProgressHUDMaskTypeClear];
+
     [self setupData];
     [self setupTableView];
-    [self setupSpinner];
 }
 
 - (void)setupData {
@@ -61,14 +64,6 @@
     self.tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     [self.view addSubview:self.tableView];
-}
-
-- (void)setupSpinner {
-    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
-    self.spinner.color = [UIColor systemBlueColor];
-    self.spinner.center = self.view.center;
-    self.spinner.hidesWhenStopped = YES;
-    [self.view addSubview:self.spinner];
 }
 
 #pragma mark - UITableView Quick Setup (Dark Style)
@@ -161,7 +156,7 @@
     
     if (results.count == 0) return;
     
-    [self.spinner startAnimating];
+    [SVProgressHUD showWithStatus:@"กำลังประมวลผล..."];
     
     PHPickerResult *result = results.firstObject;
     NSItemProvider *provider = result.itemProvider;
@@ -177,7 +172,7 @@
     [provider loadFileRepresentationForTypeIdentifier:typeIdentifier completionHandler:^(NSURL * _Nullable url, NSError * _Nullable error) {
         if (error || !url) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self.spinner stopAnimating];
+                [SVProgressHUD dismiss];
                 [self showStatusAlert:@"เกิดข้อผิดพลาดในการดึงไฟล์ต้นฉบับ"];
             });
             return;
@@ -199,7 +194,7 @@
             ReturnCode *code = [session getReturnCode];
             
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self.spinner stopAnimating];
+                [SVProgressHUD dismiss];
                 if ([ReturnCode isSuccess:code]) {
                     // ส่งวิดีโอผลลัพธ์กลับเข้าไปบันทึกไว้ในม้วนฟิล์มคลังภาพ
                     [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
