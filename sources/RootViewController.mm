@@ -27,7 +27,6 @@
 }
 
 - (void)viewDidLoad {
-    [super Xcode_setup];
     [super viewDidLoad];
     
     // ตั้งค่าพื้นหลังรวมเป็นสีดำสนิทสนมกับ Dark Mode 
